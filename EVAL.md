@@ -25,26 +25,80 @@ The minimum detectable difference is the smallest gap this many queries could re
 
 For each of `dense`, `hybrid` and `rerank`, one or two sentences: the embedding model, how documents were chunked, what was fused and how, how many candidates the reranker saw, and anything you changed from the 12 and 13 lab code.
 
-TODO: describe your three systems.
+##### 1.Dense Retrieval
+
+- Compared OpenAI text-embedding-3-small and text-embedding-3-large on retrieval quality, storage, and embedding cost. Selected text-embedding-3-small because it achieved similar Recall and MRR while text-embedding-3-large cost ~6.5× more and produced ~2× larger vector files.
+- Embeds 300-word chunks with 50-word overlap.
+- Aggregates chunk similarity into document rankings using each document's best-scoring chunk.
+
+##### 2.Hybrid Retrieval
+- Combines BM25 and dense retrieval using Reciprocal Rank Fusion (RRF, `k=60`).
+- Balances exact-term matching with semantic relevance.
+- Changed from the lab: Fused the full rankings instead of only the top 10 results, while dropping zero-score BM25 results before fusion.
+##### 3.Reranking
+- The top 20 hybrid results are reranked by Claude in a single listwise call, using the first 300 words of each candidate and the results outside the top 20 keep their original order
+- Uses structured output validation with fallback to the original ranking on failure.
+
 
 ### Practice queries (20)
 
 Scores per system.
 
 <!-- p2:begin shared-practice -->
-_No scored runs here yet: run `uv run p2 run --corpus shared --queries practice --system bm25` (or `--all`), then `uv run p2 score`._
+| System | Recall@10 | MRR@10 | nDCG@10 |
+| --- | ---: | ---: | ---: |
+| bm25 | 0.625 | 0.507 | 0.518 |
+| dense | 0.633 | 0.620 | 0.582 |
+| hybrid | 0.592 | 0.511 | 0.487 |
+| rerank | 0.800 | 0.800 | 0.785 |
+
+20 judged queries; nDCG uses binary labels; a random ranking of the 2,484 documents would get recall@10 near 0.004.
 <!-- p2:end shared-practice -->
 
 The same scores per query class.
 
 <!-- p2:begin shared-practice-classes -->
-_No scored runs here yet: run `uv run p2 run --corpus shared --queries practice --system bm25` (or `--all`), then `uv run p2 score`._
+| System | Metric | identifier (n=7) | paraphrase (n=7) | mixed (n=6) |
+| --- | --- | ---: | ---: | ---: |
+| bm25 | Recall@10 | 1.000 | 0.000 | 0.917 |
+| bm25 | MRR@10 | 0.810 | 0.000 | 0.746 |
+| bm25 | nDCG@10 | 0.857 | 0.000 | 0.728 |
+| dense | Recall@10 | 0.214 | 0.810 | 0.917 |
+| dense | MRR@10 | 0.235 | 0.679 | 1.000 |
+| dense | nDCG@10 | 0.180 | 0.691 | 0.922 |
+| hybrid | Recall@10 | 0.429 | 0.405 | 1.000 |
+| hybrid | MRR@10 | 0.449 | 0.250 | 0.889 |
+| hybrid | nDCG@10 | 0.374 | 0.261 | 0.882 |
+| rerank | Recall@10 | 0.857 | 0.571 | 1.000 |
+| rerank | MRR@10 | 0.857 | 0.571 | 1.000 |
+| rerank | nDCG@10 | 0.816 | 0.571 | 1.000 |
 <!-- p2:end shared-practice-classes -->
 
 Differences between every pair of systems, each with its paired interval and the minimum detectable difference.
 
 <!-- p2:begin shared-practice-pairs -->
-_No scored runs here yet: run `uv run p2 run --corpus shared --queries practice --system bm25` (or `--all`), then `uv run p2 score`._
+| Comparison | Metric | Mean difference | 95% interval | MDD | Reading |
+| --- | --- | ---: | ---: | ---: | --- |
+| dense minus bm25 | Recall@10 | +0.008 | [-0.300, +0.325] | 0.459 | not distinguishable |
+| dense minus bm25 | MRR@10 | +0.113 | [-0.172, +0.396] | 0.418 | not distinguishable |
+| dense minus bm25 | nDCG@10 | +0.063 | [-0.224, +0.348] | 0.417 | not distinguishable |
+| hybrid minus bm25 | Recall@10 | -0.033 | [-0.275, +0.208] | 0.355 | not distinguishable |
+| hybrid minus bm25 | MRR@10 | +0.004 | [-0.185, +0.193] | 0.274 | not distinguishable |
+| hybrid minus bm25 | nDCG@10 | -0.031 | [-0.224, +0.156] | 0.278 | not distinguishable |
+| hybrid minus dense | Recall@10 | -0.042 | [-0.225, +0.125] | 0.253 | not distinguishable |
+| hybrid minus dense | MRR@10 | -0.108 | [-0.300, +0.075] | 0.272 | not distinguishable |
+| hybrid minus dense | nDCG@10 | -0.095 | [-0.274, +0.073] | 0.253 | not distinguishable |
+| rerank minus bm25 | Recall@10 | +0.175 | [-0.025, +0.400] | 0.309 | not distinguishable |
+| rerank minus bm25 | MRR@10 | +0.293 | [+0.100, +0.500] | 0.288 | rerank higher |
+| rerank minus bm25 | nDCG@10 | +0.267 | [+0.075, +0.470] | 0.286 | rerank higher |
+| rerank minus dense | Recall@10 | +0.167 | [-0.058, +0.375] | 0.318 | not distinguishable |
+| rerank minus dense | MRR@10 | +0.180 | [-0.045, +0.404] | 0.326 | not distinguishable |
+| rerank minus dense | nDCG@10 | +0.204 | [-0.016, +0.415] | 0.313 | not distinguishable |
+| rerank minus hybrid | Recall@10 | +0.208 | [+0.075, +0.367] | 0.219 | rerank higher |
+| rerank minus hybrid | MRR@10 | +0.289 | [+0.121, +0.468] | 0.257 | rerank higher |
+| rerank minus hybrid | nDCG@10 | +0.298 | [+0.146, +0.462] | 0.236 | rerank higher |
+
+The interval is a paired bootstrap (10,000 resamples of the queries); MDD is the smallest difference this many queries detect 80% of the time.
 <!-- p2:end shared-practice-pairs -->
 
 The 40 test queries have no answer key in this repo.
@@ -214,7 +268,35 @@ _No judged answers yet (stretch option 2): `uv run p2 judge answers/shared/LABEL
 The Claude calls, tokens and seconds in every trace you committed, and what a cheaper system or answers file saves against what it loses.
 
 <!-- p2:begin stretch-cost -->
-_No Claude traces yet: a run of a system that calls Claude, `p2 answer` and `p2 judge` write them in traces/, and then `uv run p2 score` fills this table._
+Every trace in traces/ that records a Claude call:
+
+| Trace | System | Spans | Claude calls | Saved | Input tokens | Output tokens | Seconds | Input per span | Output per span | Seconds per span |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| traces/shared-practice-rerank.jsonl | rerank | 20 | 20 | 3 | 251,587 | 1,820 | 72.1 | 12,579 | 91 | 3.6 |
+| traces/shared-test-rerank.jsonl | rerank | 40 | 40 | 0 | 468,534 | 4,120 | 148.6 | 11,713 | 103 | 3.7 |
+
+A span is one query of a run, one question of an answers file, or one claim of a judged file. A saved reply costs nothing now, so it counts the tokens and the seconds of the call that made it.
+
+Every pair of systems on the same queries where at least one calls Claude, the one with fewer Claude input tokens per query first:
+
+| Cheaper minus dearer | Queries | MRR@10 difference | 95% interval | Input tokens saved per query | Seconds saved per query | Reading |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| shared practice: bm25 minus rerank | 20 | -0.293 | [-0.500, -0.100] | 12,579 | 3.6 | rerank higher |
+| shared practice: dense minus rerank | 20 | -0.180 | [-0.404, +0.045] | 12,579 | 3.6 | not distinguishable |
+| shared practice: hybrid minus rerank | 20 | -0.289 | [-0.468, -0.121] | 12,579 | 3.6 | rerank higher |
+
+The difference is the cheaper system's score minus the dearer one's, with its paired interval; the savings count Claude calls only, so a system that makes none saves all of the other's.
+
+Systems that do not call Claude, from traces/retrieval/ on the machine that last ran `p2 score` (git ignores that folder, so `p2 check` does not compare this part):
+
+| Trace | System | Queries | Seconds | Milliseconds per query |
+| --- | --- | ---: | ---: | ---: |
+| traces/retrieval/shared-practice-bm25.jsonl | bm25 | 20 | 0.03 | 1.5 |
+| traces/retrieval/shared-practice-dense.jsonl | dense | 20 | 0.05 | 2.4 |
+| traces/retrieval/shared-practice-hybrid.jsonl | hybrid | 20 | 0.09 | 4.7 |
+| traces/retrieval/shared-test-bm25.jsonl | bm25 | 40 | 0.06 | 1.4 |
+| traces/retrieval/shared-test-dense.jsonl | dense | 40 | 0.09 | 2.2 |
+| traces/retrieval/shared-test-hybrid.jsonl | hybrid | 40 | 0.20 | 4.9 |
 <!-- p2:end stretch-cost -->
 
 ### The grep agent (option 5)

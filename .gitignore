@@ -15,6 +15,9 @@ dist/
 # systems (in traces/retrieval/) change on every run, so git ignores them.
 traces/retrieval/
 
+# Secrets: the OpenAI key for p2/retrievers/_openai.py lives here and must never be committed
+.env
+
 # Editors and operating systems
 .DS_Store
 Thumbs.db
