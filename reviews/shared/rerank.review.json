@@ -1,0 +1,202 @@
+{
+  "label": "rerank",
+  "answers_file": "answers/shared/rerank.json",
+  "corpus": "shared",
+  "model": "sonnet",
+  "rule": "PASS: all four scores 4-5; FAIL: any score 1-2; PARTIAL: otherwise",
+  "only": null,
+  "reviews": [
+    {
+      "qid": "a01",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 3.6,
+      "input_tokens": 4517,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a02",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 3.6,
+      "input_tokens": 3615,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a03",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 4,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 2.8,
+      "input_tokens": 3646,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a04",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 4,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "Minor omission: the answer leaves out the other drill requirements in 57.4361(b)(2)-(3) and the certification duty in (c). The question asked only about frequency, so this is small. The first claim's quote drops the rest of the sentence (\"to assess the ability...\") without marking it, but the quote is accurate.",
+      "seconds": 3.5,
+      "input_tokens": 3873,
+      "output_tokens": 246,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a05",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 2.7,
+      "input_tokens": 4361,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a06",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 4,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "The cited quote begins \"Permissible exposure level. A TWA8 of 90 dBA...\" but the chunk cfr30-62.101#1 starts mid-sentence and includes the definition only in its later part. The quote itself does appear in the chunk, so this is minor. The quote's opening \"integrating all sound levels from 90 dBA to at least 140 dBA\" is also split across the chunk boundary. The answer omits this integration range, but that detail is not needed.",
+      "seconds": 5.3,
+      "input_tokens": 4438,
+      "output_tokens": 295,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a07",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 4,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "Minor: the answer calls 56.9300 \"surface mines\" and 57.9300 \"underground mines\". The chunks do not say this. The answer leaves out the exceptions in (d) for infrequently traveled elevated roadways, and the drainage openings in (c). Neither is essential to the height question.",
+      "seconds": 4.1,
+      "input_tokens": 4021,
+      "output_tokens": 240,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a08",
+      "kind": "in",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 4,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 3.2,
+      "input_tokens": 4908,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a09",
+      "kind": "out",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 2.7,
+      "input_tokens": 4378,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a10",
+      "kind": "out",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 3.3,
+      "input_tokens": 3249,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a11",
+      "kind": "out",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 3.2,
+      "input_tokens": 4139,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "qid": "a12",
+      "kind": "out",
+      "scores": {
+        "correctness": 5,
+        "groundedness": 5,
+        "completeness": 5,
+        "relevance": 5
+      },
+      "verdict": "PASS",
+      "issues": "",
+      "seconds": 3.3,
+      "input_tokens": 4137,
+      "output_tokens": 144,
+      "model": "claude-sonnet-5-5"
+    }
+  ]
+}
