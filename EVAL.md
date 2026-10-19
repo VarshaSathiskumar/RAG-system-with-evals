@@ -39,6 +39,10 @@ For each of `dense`, `hybrid` and `rerank`, one or two sentences: the embedding 
 - The top 20 hybrid results are reranked by Claude in a single listwise call, using the first 300 words of each candidate and the results outside the top 20 keep their original order
 - Uses structured output validation with fallback to the original ranking on failure.
 
+##### 4.Reviewer
+
+- It makes one claude -p call per answer. Each call receives the question, generated answer with its cited claims, and retrieved chunks, then scores correctness, groundedness, completeness, and relevance on a scale of 1 to 5. 
+- The final verdict follows a fixed rule: PASS if all scores are at least 4, FAIL if any score is 2 or below, and PARTIAL otherwise.
 
 ### Practice queries (20)
 
@@ -110,7 +114,9 @@ Which differences are distinguishable from zero and which are not?
 What is the minimum detectable difference at 20 queries, and what does that say about any gap smaller than it?
 Which claim from lecture 12 or 13 did your numbers support, and which did they leave open?
 
-TODO: write what the practice-query intervals let you claim.
+The results show that reranking significantly outperforms hybrid retrieval across Recall@10, MRR@10, and nDCG@10, and also beats BM25 in MRR@10 and nDCG@10. All other comparisons are not statistically distinguishable from zero because their 95% intervals include zero. With only 20 queries, the minimum detectable difference ranges from 0.219 to 0.459, with most comparisons around 0.25 to 0.33. For example, dense retrieval’s average MRR@10 was 0.113 higher than BM25, but the difference was not statistically distinguishable from zero, and its MDD was 0.418. This doesn’t mean the systems perform equally.
+
+The results are consistent with Lecture 12’s point that no retriever works best for every query type. In this sample, BM25 achieved 1.000 Recall@10 on identifier queries but 0.000 on paraphrases, while dense retrieval reached 0.810 on paraphrases. However, these patterns come from just 7 queries per class and have no confidence intervals, so they aren’t conclusive. The results also support Lecture 13’s emphasis on measuring each pipeline stage, since reranking significantly improved all three metrics over hybrid retrieval. Whether hybrid retrieval consistently outperforms BM25 or dense retrieval remains an open question.
 
 ---
 
@@ -119,17 +125,25 @@ TODO: write what the practice-query intervals let you claim.
 <!-- p2:begin answers -->
 | Label | System | Verified (in) | 95% interval | not_found (in) | Declined (out) | 95% interval | Quotes found |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| rerank-nodecline | rerank | 8 of 8 (100%) | [0.676, 1.000] | 0 of 8 (0%) | 4 of 4 (100%) | [0.510, 1.000] | 15 of 15 |
 | rerank | rerank | 8 of 8 (100%) | [0.676, 1.000] | 0 of 8 (0%) | 4 of 4 (100%) | [0.510, 1.000] | 12 of 12 |
 <!-- p2:end answers -->
 
 Which system answered, and why that one?
+The rerank system correctly answered all 8 in-scope questions, verified all 12 supporting quotes, and declined all 4 out-of-scope questions. It reranks the top 20 hybrid-retrieved chunks using Claude Sonnet 5.5 to prioritize relevant evidence before passing the top 5 chunks for citation-grounded answer generation.
 What did you change in `prompts/answer.txt`, if anything, and did the verified share or the declined share move?
+I commented out the third line, but the results remained unchanged because the first line already restricts answers to the provided chunks, and the output schema includes a not_found field for unsupported questions.
 
 Then read three in-corpus answers that `uv run p2 verify` passed.
 For each one, open the cited chunk and say whether the quote really supports the claim next to it.
 The check proves a quote is a real piece of the chunk and cannot prove that it supports the claim, so this reading is the part only you can do.
 
-TODO: write your answer choices and your three-answer audit.
+- a01 : Both quotes directly support their claims. The first quote establishes the 15-minute notification requirement, while the second identifies death at a mine as a covered accident. Although the second quote only includes option (a) and omits options (b), (c), and (d) from the full chunk, those additional accident categories are not relevant to the question. The evidence is sufficient to support the answer.
+
+- a02 :  The quote directly supports the 80% minimum incombustible content requirement. The answer also correctly explains that the additional 0.4% increase applies only when methane is present. However, this statement is supported only by the full chunk and does not have a separate claim or supporting quote. So the answer is factually correct, but the evidence coverage is incomplete.
+
+- a03 : The quote directly supports the claim that an approved self-rescue device must provide protection for 1 hour or longer. Although the quote omits the beginning of the sentence identifying the operator’s responsibility to provide the device, that information is present in the full chunk. The answer is correct and fully supported, with no evidence gap affecting the question asked.
+
 
 ---
 
@@ -274,9 +288,10 @@ Every trace in traces/ that records a Claude call:
 
 | Trace | System | Spans | Claude calls | Saved | Input tokens | Output tokens | Seconds | Input per span | Output per span | Seconds per span |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| traces/answers-rerank-nodecline.jsonl | rerank | 12 | 24 | 14 | 226,039 | 4,940 | 95.9 | 18,837 | 412 | 8.0 |
 | traces/answers-rerank.jsonl | rerank | 12 | 24 | 4 | 236,381 | 4,215 | 109.9 | 19,698 | 351 | 9.2 |
-| traces/shared-practice-rerank.jsonl | rerank | 20 | 20 | 3 | 251,587 | 1,820 | 72.1 | 12,579 | 91 | 3.6 |
-| traces/shared-test-rerank.jsonl | rerank | 40 | 40 | 0 | 468,534 | 4,120 | 148.6 | 11,713 | 103 | 3.7 |
+| traces/shared-practice-rerank.jsonl | rerank | 20 | 20 | 20 | 251,587 | 1,820 | 71.9 | 12,579 | 91 | 3.6 |
+| traces/shared-test-rerank.jsonl | rerank | 40 | 40 | 40 | 468,534 | 4,120 | 148.4 | 11,713 | 103 | 3.7 |
 
 A span is one query of a run, one question of an answers file, or one claim of a judged file. A saved reply costs nothing now, so it counts the tokens and the seconds of the call that made it.
 
@@ -290,16 +305,24 @@ Every pair of systems on the same queries where at least one calls Claude, the o
 
 The difference is the cheaper system's score minus the dearer one's, with its paired interval; the savings count Claude calls only, so a system that makes none saves all of the other's.
 
+Every two answers files on the same questions, the one with fewer input tokens per question first:
+
+| Cheaper minus dearer | Questions | Passing share difference | 95% interval | Input tokens saved per question | Seconds saved per question | Reading |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| shared: rerank-nodecline minus rerank | 12 | +0.000 | [+0.000, +0.000] | 862 | 1.2 | not distinguishable |
+
+A question passes when its `p2 verify` line is a PASS: every quote is in a chunk that was retrieved, and the question is declined exactly when it should be.
+
 Systems that do not call Claude, from traces/retrieval/ on the machine that last ran `p2 score` (git ignores that folder, so `p2 check` does not compare this part):
 
 | Trace | System | Queries | Seconds | Milliseconds per query |
 | --- | --- | ---: | ---: | ---: |
-| traces/retrieval/shared-practice-bm25.jsonl | bm25 | 20 | 0.03 | 1.5 |
-| traces/retrieval/shared-practice-dense.jsonl | dense | 20 | 0.05 | 2.4 |
-| traces/retrieval/shared-practice-hybrid.jsonl | hybrid | 20 | 0.09 | 4.7 |
+| traces/retrieval/shared-practice-bm25.jsonl | bm25 | 20 | 0.03 | 1.4 |
+| traces/retrieval/shared-practice-dense.jsonl | dense | 20 | 0.04 | 2.2 |
+| traces/retrieval/shared-practice-hybrid.jsonl | hybrid | 20 | 0.10 | 5.1 |
 | traces/retrieval/shared-test-bm25.jsonl | bm25 | 40 | 0.06 | 1.4 |
-| traces/retrieval/shared-test-dense.jsonl | dense | 40 | 0.09 | 2.2 |
-| traces/retrieval/shared-test-hybrid.jsonl | hybrid | 40 | 0.20 | 4.9 |
+| traces/retrieval/shared-test-dense.jsonl | dense | 40 | 0.08 | 2.0 |
+| traces/retrieval/shared-test-hybrid.jsonl | hybrid | 40 | 0.19 | 4.7 |
 <!-- p2:end stretch-cost -->
 
 ### The grep agent (option 5)
