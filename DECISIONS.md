@@ -26,7 +26,9 @@ Commit this answer before your first `uv run p2 score` on the own corpus.
 Git history then shows that the expectation came first, which is what lets it be wrong in a way that teaches you something.
 If you were surprised later, say so in prompt 4 or in EVAL.md; do not come back and rewrite this one.
 
-TODO: your answer to prompt 1.
+I chose a corpus focused on U.S. immigration, work authorization, and tax regulations. As an international student, I often find it difficult to get reliable information because it is scattered across multiple government websites. I end up switching between several tabs to find answers, and with immigration policies and regulations frequently changing, keeping track of the latest information becomes even harder. I wanted to build a retrieval system that could bring these official sources together and help users find accurate, relevant information without searching through multiple websites.
+
+Before measuring anything, I expect rerank to perform best because it evaluates retrieved passages based on how well they answer the question. I expected hybrid to come next, combining BM25’s exact keyword matching with dense retrieval’s semantic understanding. I expected dense to perform better than bm25 on conversational questions, while bm25 would perform worst because users may not know the exact legal terminology used in government documents.
 
 ---
 
