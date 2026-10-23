@@ -1,4 +1,34 @@
-# Your gold set's queries, one per line: qid<TAB>class<TAB>text<TAB>origin, separated by tabs.
-# origin is hand when you wrote the query yourself and claude when a model drafted it; at least 10 must be hand.
-# class is a word you choose, for example identifier, paraphrase or mixed as in the shared sets; scores are reported per class.
-# Lines that start with # are comments, so delete these lines or keep them, as you like.
+q01	Direct	I’m an F-1 student graduating in a couple of months. How early can I apply for OPT, and what’s the deadline after graduation?	hand
+q02	Scenario	I’m on an F-1 visa and recently received an internship offer. What is the process for obtaining CPT authorization, and can I start working before it’s approved?	hand
+q03	Scenario	I’m an F-1 student pursuing a master’s degree in Computer Science. Am I eligible for the 24-month STEM OPT extension, and what steps do I need to follow to apply?	hand
+q04	Scenario	I’m on an F-1 visa, and my spouse is on an F-2 visa. Can my spouse work, or study in the United States? What restrictions apply?	hand
+q05	Semantic	I’m working on OPT, and my employer is deducting Social Security and Medicare taxes from my paycheck. Are F-1 students required to pay these taxes?	hand
+q06	Direct	I graduated recently and started my post-completion OPT, but I haven’t found a job yet. How many days can I remain unemployed?	hand
+q07	Semantic	I’m an F-1 student graduating soon. What happens to my immigration status after graduation if I don’t apply for OPT, find employment, or enroll in another academic program?	hand
+q08	Direct	How many hours per week can an F-1 student work on campus while school is in session?	hand
+q09	Direct	How long must an F-1 student maintain full-time enrollment before becoming eligible for CPT?	hand
+q10	Semantic	My boss says my OPT job has to be related to my degree. What counts as directly related to my major?	claude
+q11	Semantic	My university issued me a new I-20, but my F-1 visa stamp has expired. Does that mean I'm no longer allowed to stay in the United States?	hand
+q12	Scenario	I'm an F-1 student who wants to take a semester off due to a medical condition. Can I remain in the United States without enrolling in classes?	hand
+q13	Scenario	I'm working on STEM OPT and recently lost my job. How much time do I have to find another employer, and what reporting requirements must I follow?	hand
+q14	Multi-document	I'm completing my degree and planning to transfer to another university for a second master's program. What steps must I follow to transfer my SEVIS record?	hand
+q15	Exact-match	What is Form I-901 and when do I have to pay the SEVIS fee?	claude
+q16	Exact-match	What is the purpose of Form I-983, and what information must an F-1 student and employer provide when applying for the 24-month STEM OPT extension?	hand
+q17	Direct	Can an F-1 student get permission to work off campus because of severe financial hardship, and who approves it?	claude
+q18	Scenario	My first semester is hard because of English and unfamiliar teaching methods. Can I take fewer classes than full-time without losing my F-1 status?	claude
+q19	Scenario	I don't plan to take summer classes. Will I still be in status during my summer break?	claude
+q20	Scenario	I stopped attending classes last term and fell out of status. Can I be reinstated, and is there a time limit for asking?	claude
+q21	Multi-document	A company offered me an unpaid internship in my field. Does it count as employment that needs authorization, and does labor law treat me as an employee?	claude
+q22	Multi-document	I was offered an on-campus job but I don't have a Social Security number. How do I get an SSN or ITIN, and can I be paid without one?	claude
+q23	Exact-match	Which form do I use to apply for an ITIN, and what identity documents does the IRS accept from a foreign student?	claude
+q24	Exact-match	What is Form 8843 and do I have to file it if I had no income last year?	claude
+q25	Semantic	I have been in the U.S. on an F-1 visa for six years. Does the IRS still treat me as a nonresident for tax purposes?	claude
+q26	Exact-match	What is Form W-8BEN used for, and who has to give it to a payer?	claude
+q27	Scenario	I receive a scholarship from a U.S. university and my home country has a tax treaty with the United States. Can I claim an exemption from withholding on it?	claude
+q28	Scenario	I have a bank account in my home country with about $12,000 in it. Do I need to report it to the U.S. government?	claude
+q29	Scenario	My employer is getting me an H-1B and my spouse will be on H-4 status. Can my spouse apply for work permission?	claude
+q30	Direct	Where can I get my I-94 record to prove my status to an employer or my school?	claude
+q31	Semantic	If I stay in the U.S. after my I-94 date, when does unlawful presence start for a student admitted for duration of status?	claude
+q32	Semantic	I was a nonresident student for part of the year and then met the substantial presence test. How do I file my taxes for that year?	claude
+q33	Scenario	I'm in H-1B status and got a job offer from a different company. Can I start working for the new employer before USCIS approves the new petition, or do I have to wait?	claude
+q34	Direct	What is the most OPT I can get, and does time I used before graduating count against it?	claude
