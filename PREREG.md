@@ -24,7 +24,9 @@ One sentence, about your own corpus, naming two of your systems and a direction.
 For example: "On my corpus of Kubernetes documentation, `rerank` has a higher MRR@10 than `hybrid`, because the queries are paraphrases that a first-stage fusion ranks too low."
 It should be something you could be wrong about.
 
-TODO: your hypothesis.
+As an international student, I often find myself opening multiple tabs to understand new F-1 regulations, work authorization rules, and immigration updates. Even after going through several sources, the information can still be confusing. This motivated me to build a corpus focused on U.S. immigration, work authorization, and tax regulations, covering F-1, J-1, OPT, STEM OPT, H-1B, and green card topics.The corpus is well suited for evaluating retrieval systems because it contains complex legal terminology, overlapping regulations,  and documents that address similar questions across different visa categories.
+
+I expect reranking to outperform hybrid retrieval because it evaluates the relevance of each retrieved passage to the user’s question, which could help distinguish between similar regulations. Hybrid retrieval may perform well because it combines BM25’s exact keyword matching with dense retrieval’s semantic understanding. I expect BM25 to perform worse because users often describe their situations in natural language rather than using exact legal terminology.
 
 ---
 
@@ -36,7 +38,7 @@ A difference of 0.02 is usually not worth a reranker's cost in time and tokens.
 In this course, choose a Δ of at least 0.15 unless you argue for a larger one, because a smaller gap takes more queries than one project can judge.
 Call your number Δ (delta).
 
-TODO: your metric and your Δ, with the reason.
+I choose nDCG@10 because immigration questions often require information from multiple regulations, so both the relevance and ranking of retrieved passages matter. I set Δ = 0.15 as the minimum meaningful improvement because users should be able to find the most relevant regulations near the top of the results. A smaller improvement may not justify the additional latency and token costs of reranking.
 
 ---
 
@@ -65,7 +67,7 @@ After you score the own corpus, the minimum detectable difference that `uv run p
 It should come out at or below your Δ.
 If it does not, your queries varied more than your stage 1 sd suggested, and you will say so in the outcome.
 
-TODO: your sd, which pair it came from, your n, and the number of queries you will write (at least n).
+I used the nDCG@10 scores from the 20 shared practice queries, comparing rerank against hybrid retrieval. The standard deviation of the per-query differences was 0.3766. With Δ = 0.15, 5% significance, and 80% power, the formula gives n = 49.43, which rounds up to 50 queries. However, I plan to create 40 gold queries for my corpus due to the time required to manually create and judge them. With 40 queries, the estimated minimum detectable difference increases to approximately 0.17. I chose to compromise on statistical sensitivity to keep the gold set manageable, recognizing that I may not reliably detect a difference of 0.15.
 
 ---
 
@@ -82,7 +84,7 @@ This is the default rule, and you can tighten it, but do not loosen it after you
 | around zero, with both ends inside plus or minus Δ | well-powered null: a difference as large as Δ is ruled out |
 | around zero, with an end beyond plus or minus Δ | inconclusive: the gold set could not settle it, and I say so |
 
-TODO: confirm or tighten this rule, and name the two systems and the metric once more.
+I will use the default decision rule to compare rerank against hybrid using nDCG@10, with Δ = 0.15. If the paired 95% confidence interval is entirely above zero, my hypothesis is supported. If it is entirely below zero, my hypothesis is contradicted. If the interval crosses zero but stays within ±0.15, I will report a well-powered null. If it crosses zero and extends beyond ±0.15, I will report the result as inconclusive.
 
 ---
 
