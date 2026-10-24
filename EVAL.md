@@ -303,6 +303,7 @@ Read the queries at the top of each list in the second table, and say whether yo
 
 TODO: write the ablation: the one change, the hypothesis, the result and the claim.
 
+Hypothesis: I expect changing the reranker prompt from mine safety regulations to immigration regulations will improve nDCG@10 because Claude will have the correct context to rank relevant documents higher.
 ---
 
 ## 6. Failure analysis
