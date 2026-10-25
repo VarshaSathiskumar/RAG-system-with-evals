@@ -167,6 +167,8 @@ How did you find candidates (the systems' top 10, a keyword search, reading), an
 Your labels are binary (`rel` 1) unless you say otherwise: if you use graded labels, declare the scale here, for example 2 means the document answers the query fully and 1 means it helps.
 
 The gold set contains 34 queries: 14 hand-written and 20 Claude-generated. Queries span five classes: Scenario (12), Direct (7), Semantic (7), Exact-match (5), and Multi-document (3). These classes test real-world scenerios, straightforward factual retrieval, paraphrased questions, exact terminologies, and questions requiring evidence from multiple documents. A document is relevant (rel = 1) if it directly answers the query. Other irrelavent topic mentions, cross-references, or rules applying only to other visa categories are irrelevant (rel = 0). For each query, I collected candidate documents using Claude (top 5), BM25 keyword search (top 10), and dense retrieval (top 10). I merged and deduplicated the results, then manually reviewed the candidates and assigned binary relevance labels. I also removed duplicate queries to maintain topic diversity. I did not review all 406 documents, so some relevant documents may remain unidentified.
+
+
 ---
 
 ## 4. Stage 2 - results on your corpus
