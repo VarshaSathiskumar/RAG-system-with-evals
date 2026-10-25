@@ -180,6 +180,7 @@ Scores per system on your gold set.
 | dense | 0.775 | 0.641 | 0.639 |
 | hybrid | 0.858 | 0.623 | 0.660 |
 | rerank | 0.902 | 0.763 | 0.780 |
+| ablation/rerank_prompt | 0.892 | 0.740 | 0.761 |
 
 34 judged queries; nDCG uses binary labels; a random ranking of the 406 documents would get recall@10 near 0.025.
 <!-- p2:end own -->
@@ -201,6 +202,9 @@ The same scores per query class.
 | rerank | Recall@10 | 0.929 | 0.917 | 0.929 | 0.889 | 0.800 |
 | rerank | MRR@10 | 0.821 | 0.792 | 0.643 | 1.000 | 0.640 |
 | rerank | nDCG@10 | 0.811 | 0.821 | 0.721 | 0.889 | 0.653 |
+| ablation/rerank_prompt | Recall@10 | 0.929 | 0.917 | 0.881 | 0.889 | 0.800 |
+| ablation/rerank_prompt | MRR@10 | 0.833 | 0.764 | 0.636 | 1.000 | 0.540 |
+| ablation/rerank_prompt | nDCG@10 | 0.821 | 0.805 | 0.698 | 0.896 | 0.579 |
 <!-- p2:end own-classes -->
 
 The same scores for the queries you wrote yourself (`hand`) and the ones a model drafted (`claude`), with the difference between the two groups and its interval.
@@ -221,6 +225,9 @@ Once both groups have queries, the table also says whether `bm25`'s lead over `d
 | rerank | Recall@10 | 1.000 | 0.833 | +0.167 | [+0.042, +0.325] | hand higher |
 | rerank | MRR@10 | 0.839 | 0.710 | +0.129 | [-0.084, +0.344] | not distinguishable |
 | rerank | nDCG@10 | 0.873 | 0.714 | +0.159 | [-0.012, +0.337] | not distinguishable |
+| ablation/rerank_prompt | Recall@10 | 1.000 | 0.817 | +0.183 | [+0.058, +0.342] | hand higher |
+| ablation/rerank_prompt | MRR@10 | 0.798 | 0.699 | +0.098 | [-0.120, +0.323] | not distinguishable |
+| ablation/rerank_prompt | nDCG@10 | 0.844 | 0.703 | +0.141 | [-0.039, +0.327] | not distinguishable |
 
 The hand and claude queries are different queries, so the interval of hand minus claude comes from resampling the queries within each group (10,000 times), not from pairing them.
 
@@ -260,6 +267,18 @@ Differences between every pair of systems.
 | rerank minus hybrid | Recall@10 | +0.044 | [-0.049, +0.142] | 0.138 | not distinguishable |
 | rerank minus hybrid | MRR@10 | +0.140 | [+0.009, +0.275] | 0.194 | rerank higher |
 | rerank minus hybrid | nDCG@10 | +0.120 | [+0.010, +0.230] | 0.161 | rerank higher |
+| ablation/rerank_prompt minus bm25 | Recall@10 | +0.059 | [-0.010, +0.147] | 0.121 | not distinguishable |
+| ablation/rerank_prompt minus bm25 | MRR@10 | +0.184 | [+0.041, +0.326] | 0.209 | ablation/rerank_prompt higher |
+| ablation/rerank_prompt minus bm25 | nDCG@10 | +0.162 | [+0.053, +0.274] | 0.161 | ablation/rerank_prompt higher |
+| ablation/rerank_prompt minus dense | Recall@10 | +0.118 | [+0.000, +0.240] | 0.175 | not distinguishable |
+| ablation/rerank_prompt minus dense | MRR@10 | +0.099 | [-0.053, +0.255] | 0.224 | not distinguishable |
+| ablation/rerank_prompt minus dense | nDCG@10 | +0.121 | [-0.010, +0.257] | 0.195 | not distinguishable |
+| ablation/rerank_prompt minus hybrid | Recall@10 | +0.034 | [-0.059, +0.127] | 0.130 | not distinguishable |
+| ablation/rerank_prompt minus hybrid | MRR@10 | +0.117 | [-0.017, +0.254] | 0.198 | not distinguishable |
+| ablation/rerank_prompt minus hybrid | nDCG@10 | +0.101 | [-0.009, +0.212] | 0.161 | not distinguishable |
+| ablation/rerank_prompt minus rerank | Recall@10 | -0.010 | [-0.029, +0.000] | 0.027 | not distinguishable |
+| ablation/rerank_prompt minus rerank | MRR@10 | -0.024 | [-0.060, +0.001] | 0.046 | not distinguishable |
+| ablation/rerank_prompt minus rerank | nDCG@10 | -0.019 | [-0.046, +0.001] | 0.034 | not distinguishable |
 
 The interval is a paired bootstrap (10,000 resamples of the queries); MDD is the smallest difference this many queries detect 80% of the time.
 <!-- p2:end own-pairs -->
@@ -287,23 +306,54 @@ Write your hypothesis here before you run it, in one sentence with a direction: 
 The run file for it lives in `runs/own/ablation/`.
 
 <!-- p2:begin own-ablation -->
-_No ablation runs yet: `uv run p2 run --corpus own --system NAME --ablation` writes one to runs/own/ablation/, then `uv run p2 score` fills this table._
+| Comparison | Metric | Mean difference | 95% interval | MDD | Reading |
+| --- | --- | ---: | ---: | ---: | --- |
+| ablation/rerank_prompt minus bm25 | Recall@10 | +0.059 | [-0.010, +0.147] | 0.121 | not distinguishable |
+| ablation/rerank_prompt minus bm25 | MRR@10 | +0.184 | [+0.041, +0.326] | 0.209 | ablation/rerank_prompt higher |
+| ablation/rerank_prompt minus bm25 | nDCG@10 | +0.162 | [+0.053, +0.274] | 0.161 | ablation/rerank_prompt higher |
+| ablation/rerank_prompt minus dense | Recall@10 | +0.118 | [+0.000, +0.240] | 0.175 | not distinguishable |
+| ablation/rerank_prompt minus dense | MRR@10 | +0.099 | [-0.053, +0.255] | 0.224 | not distinguishable |
+| ablation/rerank_prompt minus dense | nDCG@10 | +0.121 | [-0.010, +0.257] | 0.195 | not distinguishable |
+| ablation/rerank_prompt minus hybrid | Recall@10 | +0.034 | [-0.059, +0.127] | 0.130 | not distinguishable |
+| ablation/rerank_prompt minus hybrid | MRR@10 | +0.117 | [-0.017, +0.254] | 0.198 | not distinguishable |
+| ablation/rerank_prompt minus hybrid | nDCG@10 | +0.101 | [-0.009, +0.212] | 0.161 | not distinguishable |
+| ablation/rerank_prompt minus rerank | Recall@10 | -0.010 | [-0.029, +0.000] | 0.027 | not distinguishable |
+| ablation/rerank_prompt minus rerank | MRR@10 | -0.024 | [-0.060, +0.001] | 0.046 | not distinguishable |
+| ablation/rerank_prompt minus rerank | nDCG@10 | -0.019 | [-0.046, +0.001] | 0.034 | not distinguishable |
+
+The interval is a paired bootstrap (10,000 resamples of the queries); MDD is the smallest difference this many queries detect 80% of the time.
 <!-- p2:end own-ablation -->
 
 The queries your ablation helped and hurt, against the system it varies, by reciprocal rank.
 `p2 score` finds that system from a line such as `BASE = "bm25"` in your variant's file, or else from its name: `bm25_lab` varies `bm25`.
 
 <!-- p2:begin own-ablation-queries -->
-_No ablation runs yet: `uv run p2 run --corpus own --system NAME --ablation` writes one to runs/own/ablation/, then `uv run p2 score` fills this table._
+ablation/rerank_prompt against rerank (BASE = "rerank" in p2/retrievers/rerank_prompt.py): it helped 1 queries, hurt 4 and left 29 unchanged.
+
+| Query | Class | Origin | rerank RR | ablation/rerank_prompt RR | Change | Effect |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| q01 | Direct | hand | 0.250 | 0.333 | +0.083 | helped |
+| q16 | Exact-match | hand | 1.000 | 0.500 | -0.500 | hurt |
+| q13 | Scenario | hand | 0.500 | 0.333 | -0.167 | hurt |
+| q19 | Scenario | claude | 0.500 | 0.333 | -0.167 | hurt |
+| q25 | Semantic | claude | 0.250 | 0.200 | -0.050 | hurt |
+
+RR is the reciprocal rank of the first relevant document in the top 10 (0 when none is there), the per-query value behind MRR@10; the queries at the top of each list are the ones to read.
 <!-- p2:end own-ablation-queries -->
 
 What did you change, what happened, and does the interval support the claim you want to make?
 If the result is not distinguishable, say what size of effect your gold set could have seen.
 Read the queries at the top of each list in the second table, and say whether your change explains them.
 
-TODO: write the ablation: the one change, the hypothesis, the result and the claim.
+
 
 Hypothesis: I expect changing the reranker prompt from mine safety regulations to immigration regulations will improve nDCG@10 because Claude will have the correct context to rank relevant documents higher.
+
+Result: I changed only the domain description in the reranker prompt. Contrary to my prediction, nDCG@10 decreased from 0.780 to 0.761. However, the 95% confidence interval [-0.046, +0.001] includes zero, so the difference was not statistically distinguishable. With 34 queries, the minimum detectable difference was 0.034.
+
+Only 5 of 34 queries changed. The updated prompt improved q01 by moving the relevant OPT document from rank 4 to 3, but lowered relevant documents for q13, q16, q19, and q25. The largest drop was q16, where the relevant USCIS STEM OPT document moved from rank 1 to 2 for a question about Form I-983. The prompt change may have influenced how Claude prioritized broader regulations over specific guidance, but the rankings alone cannot confirm this.
+
+Overall, my hypothesis was not supported. Correcting the domain description did not produce a statistically distinguishable improvement, suggesting that the original prompt mismatch had limited measurable impact on this gold set.
 ---
 
 ## 6. Failure analysis
@@ -314,8 +364,11 @@ Then sort the failures by cause, for example a vocabulary mismatch, near-duplica
 
 | qid | what the best system returned | what was relevant | cause | what you would try |
 |---|---|---|---|---|
-
-TODO: add one row for each failure you analyzed, and write two or three sentences on the pattern you see across them.
+| q24 | `irs-exempt-individuals-teachers-and-trainees.md`, `irs-pub-519-p04-days-of-presence-in.md`, `irs-instr-1040nr-p04-filing-requirements-through-do.md`, `irs-pub-519-p47-i-am-a-student.md`, `irs-pub-519-p46-what-is-the-difference.md` | `irs-exempt-individual-who-is-a-student.md`, `irs-substantial-presence-test.md`, `irs-instr-1040nr-p06-additional-information-through.md` | Overlapping documents and incomplete relevance labels. Some returned documents also answered the question but weren't labeled relevant. | Review the returned documents and add missing relevance labels where appropriate. |
+| q20 | `cfr8-214.2-f-p04-extension-of-stay-through.md`, `sevp-maintaining-status.md`, `sevp-transferring-schools.md`, `cfr8-214.2-f-p03-full-course-of-study.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `cfr8-214.2-f-p09-temporary-absence-from-the.md` | Relevant information was buried in a long document. The reranker only saw the first 300 words, missing the reinstatement paragraph and five-month rule. | Use chunk-level reranking so the model can evaluate the relevant passage instead of truncated document text. |
+| q34 | `uscis-opt-f1.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-stem-opt.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md`, `cfr8-214.2-f-p06-practical-training-through-cur.md` | Ambiguous query and possible over-labeling. "The most OPT I can get" could refer to the standard 12 months, the STEM extension, or additional OPT at a higher degree level. The top-ranked USCIS document answers the pre-completion deduction question, while the missing CFR document provides only partial supporting information. | Clarify which OPT duration the query asks about and review whether the CFR document should be labeled relevant. |
+| q01 | `uscis-i-765-p02-form-details.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-opt-f1.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md` | Possible document truncation during reranking. The reranker only sees the first 300 words, so it may miss the filing deadlines in the relevant document. Other documents also contain overlapping information. | Use section-based chunk reranking to capture the relevant filing deadlines and review relevance labels for overlapping documents. |
+ q23 | `irs-obtaining-an-itin-from-abroad.md`, `irs-taxpayer-identification-numbers-tins-for-foreign-students-and-scholars.md`, `irs-itin-documentation-frequently-asked-questions-faqs.md`, `irs-instr-w7-p04-additional-documentation-requi.md`, `irs-instr-w7-p03-who-is-eligible-to.md` | `irs-instr-w7-p03-who-is-eligible-to.md` | Reranking favored shorter, overlapping ITIN guidance over the document containing the complete list of acceptable identity documents. The relevant document dropped from rank 2 in hybrid to rank 5. | Rerank using complete relevant passages and prioritize documents that answer both parts of the query. |
 
 ---
 
@@ -324,11 +377,52 @@ TODO: add one row for each failure you analyzed, and write two or three sentence
 The two tables to compare are the shared-corpus scores in section 1 and your own-corpus scores in section 4, with their intervals.
 If you want them side by side, copy the rows you need into a table here and say that you copied them.
 
+These rows are copied from sections 1 (shared practice, 20 queries, 2,484 documents) and 4 (own corpus, 34 queries, 406 documents); they are not recomputed.
+
+| System | Shared Recall@10 | Shared MRR@10 | Shared nDCG@10 | Own Recall@10 | Own MRR@10 | Own nDCG@10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| bm25 | 0.625 | 0.507 | 0.518 | 0.833 | 0.555 | 0.599 |
+| dense | 0.633 | 0.620 | 0.582 | 0.775 | 0.641 | 0.639 |
+| hybrid | 0.592 | 0.511 | 0.487 | 0.858 | 0.623 | 0.660 |
+| rerank | 0.800 | 0.800 | 0.785 | 0.902 | 0.763 | 0.780 |
+
+The paired differences for nDCG@10, also copied (95% paired bootstrap interval, then the minimum detectable difference):
+
+| Comparison | Shared (n=20) | Shared MDD | Own (n=34) | Own MDD |
+| --- | ---: | ---: | ---: | ---: |
+| rerank minus bm25 | +0.267 [+0.075, +0.470] | 0.286 | +0.181 [+0.071, +0.292] | 0.161 |
+| rerank minus dense | +0.204 [-0.016, +0.415] | 0.313 | +0.140 [+0.009, +0.272] | 0.194 |
+| rerank minus hybrid | +0.298 [+0.146, +0.462] | 0.236 | +0.120 [+0.010, +0.230] | 0.161 |
+| dense minus bm25 | +0.063 [-0.224, +0.348] | 0.417 | +0.041 [-0.058, +0.139] | 0.145 |
+| hybrid minus bm25 | -0.031 [-0.224, +0.156] | 0.278 | +0.061 [-0.0003, +0.126] | 0.091 |
+| hybrid minus dense | -0.095 [-0.274, +0.073] | 0.253 | +0.021 [-0.042, +0.086] | 0.092 |
+
+Document lengths, computed (not copied) as whitespace-separated words per file in `corpora/<name>/docs/`, the same count `rerank.py` uses for its 300-word window:
+
+| | Shared (30 CFR) | Own |
+| --- | ---: | ---: |
+| Documents | 2,484 | 406 |
+| Median words per document | 68 | 1,303 |
+| Mean words per document | 158 | 1,359 |
+| 25th to 75th percentile | 36 to 166 | 782 to 1,518 |
+| 90th percentile | 379 | 2,059 |
+| Longest | 3,583 | 6,802 |
+| Documents over 300 words | 335 (13.5%) | 390 (96.1%) |
+| Documents over 600 words | 128 (5.2%) | 332 (81.8%) |
+| Share of all words inside the first 300 words | 71.0% | 21.8% |
+
 Did the winner change between the shared corpus and yours?
 Why, or why not: what is different about the two collections (document length, vocabulary, identifiers, near-duplicates, how the queries were written), and which of your explanations did you test and which are guesses?
 Say what 20 queries on one side and your gold-set size on the other cannot support.
 
-TODO: write the cross-corpus comparison.
+Reranking achieved the highest nDCG@10 on both corpora (0.785 shared, 0.780 own). Dense ranked second on shared, while hybrid ranked second on mine, but the differences among BM25, dense, and hybrid were not statistically distinguishable. Reranking outperformed BM25 and hybrid on both corpora. Its improvement over dense was distinguishable only on mine (+0.140, 95% CI [+0.009, +0.272]).
+
+The corpora differ considerably in document length and query types. Shared documents have a median of 68 words, compared to 1,303 on mine. The reranker’s 300-word window covers 71% of shared text but only 21.8% of mine. Despite this limitation, reranking still performed best. My failure analysis identified cases where relevant passages fell outside this window. On shared queries, BM25 achieved 1.000 Recall@10 on identifiers but 0.000 on paraphrases, where dense reached 0.810.
+
+I measured document lengths and compared retrieval performance across query classes and query origins. On my corpus, BM25 achieved 1.000 Recall@10 on 14 hand-written queries versus 0.717 on 20 Claude-generated queries, suggesting that query construction may influence retrieval results. I also observed overlapping documents and ambiguous relevance labels. However, I did not test whether truncation, vocabulary differences, identifiers, or near-duplicates caused the ranking changes. The smaller reranking gain over hybrid on mine (+0.120 versus +0.298) could reflect these differences, but the cause remains uncertain.
+
+Finally, 20 shared practice queries and 34 own queries are insufficient for broad generalization. Shared nDCG@10 MDDs range from 0.236 to 0.417, and some query classes contain only 3–7 examples. These results cannot establish which system generalizes better or whether one corpus is easier.
+
 
 ---
 
@@ -368,6 +462,7 @@ Every trace in traces/ that records a Claude call:
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | traces/answers-rerank-nodecline.jsonl | rerank | 12 | 24 | 14 | 226,039 | 4,940 | 95.9 | 18,837 | 412 | 8.0 |
 | traces/answers-rerank.jsonl | rerank | 12 | 24 | 4 | 236,381 | 4,215 | 109.9 | 19,698 | 351 | 9.2 |
+| traces/own-own-ablation-rerank_prompt.jsonl | rerank_prompt | 34 | 34 | 2 | 542,696 | 3,151 | 112.7 | 15,962 | 93 | 3.3 |
 | traces/own-own-rerank.jsonl | rerank | 34 | 34 | 2 | 539,299 | 3,432 | 101.8 | 15,862 | 101 | 3.0 |
 | traces/shared-practice-rerank.jsonl | rerank | 20 | 20 | 20 | 251,587 | 1,820 | 71.9 | 12,579 | 91 | 3.6 |
 | traces/shared-test-rerank.jsonl | rerank | 40 | 40 | 40 | 468,534 | 4,120 | 148.4 | 11,713 | 103 | 3.7 |
