@@ -43,7 +43,11 @@ If you rejected the alternative without measuring it, say why that was a fair ca
 "There was no alternative" is not an answer.
 Find the fork.
 
-TODO: your answer to prompt 2.
+I chose to rerank documents using only their first 300 words rather than splitting them into smaller passages and reranking those individually. This kept the implementation simpler and limited the text sent to Claude, reducing token usage and latency.
+
+The tradeoff was that relevant information appearing later in long documents could be missed. My failure analysis identified this issue in q01 and q20, where important OPT and reinstatement information appeared beyond the reranker’s input window. On my corpus, the 300-word window covered only 21.8% of the document text.
+
+I did not implement chunk-level reranking because it would require additional passage selection and potentially more Claude calls or input tokens. However, I gave up the ability to evaluate relevant passages located deeper in documents. I would compare both approaches in a future experiment to measure whether the retrieval improvement justifies the additional cost.
 
 ---
 
@@ -59,7 +63,9 @@ What did you do instead?
 If it genuinely never happened, say so plainly, and then say what you would have had to check in order to notice.
 Being honest here costs you far less than a story you cannot defend when you record your video.
 
-TODO: your answer to prompt 3.
+I used Claude to help select the top five relevant documents for each query while building my gold set. However, some of its suggestions were completely unrelated to the question, even with higher reasoning effort.
+
+I noticed this when I manually read the suggested documents and compared their contents with the query. Instead of accepting Claude’s selections, I verified each document myself and removed irrelevant ones. This showed me that even with higher reasoning effort, Claude can make incorrect relevance judgments, so manual verification was necessary.
 
 ---
 

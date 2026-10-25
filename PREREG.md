@@ -95,7 +95,11 @@ Which row of the table in section 4 is it?
 Did your gold set reach the size section 3 asked for, and what was the minimum detectable difference that `uv run p2 score` printed?
 What would you do next, and what would you want a reader to take from this?
 
-TODO: your outcome.
+I followed my pre-registered test, comparing rerank against hybrid using nDCG@10. The observed improvement was +0.120, with a paired 95% confidence interval of [+0.010, +0.230] from the own-pairs table in Section 4 of EVAL.md. Since the interval is entirely above zero, my hypothesis is supported under the pre-registered decision rule.
+
+I completed 34 queries instead of the planned 40, below the estimated 50 needed to detect Δ = 0.15 with 80% power. The actual minimum detectable difference was 0.161, slightly above my target. Although reranking performed better, the interval does not establish that the improvement reaches my minimum meaningful effect of 0.15.
+
+Next, I would expand the gold set to reduce uncertainty and test whether the improvement is large enough to justify reranking’s additional latency and token costs. The main takeaway is that reranking improved ranking quality on my corpus, but the practical significance of that improvement remains uncertain.
 
 ---
 

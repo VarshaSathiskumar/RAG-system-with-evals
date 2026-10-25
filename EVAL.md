@@ -349,13 +349,14 @@ Read the queries at the top of each list in the second table, and say whether yo
 
 
 
-Hypothesis: I expect changing the reranker prompt from mine safety regulations to immigration regulations will improve nDCG@10 because Claude will have the correct context to rank relevant documents higher.
+Hypothesis: I expect changing the reranker prompt from mine safety regulations to immigration and tax regulations to improve nDCG@10 because Claude will have the correct domain context to rank relevant documents higher.
 
 Result: I changed only the domain description in the reranker prompt. Contrary to my prediction, nDCG@10 decreased from 0.780 to 0.761. However, the 95% confidence interval [-0.046, +0.001] includes zero, so the difference was not statistically distinguishable. With 34 queries, the minimum detectable difference was 0.034.
 
-Only 5 of 34 queries changed. The updated prompt improved q01 by moving the relevant OPT document from rank 4 to 3, but lowered relevant documents for q13, q16, q19, and q25. The largest drop was q16, where the relevant USCIS STEM OPT document moved from rank 1 to 2 for a question about Form I-983. The prompt change may have influenced how Claude prioritized broader regulations over specific guidance, but the rankings alone cannot confirm this.
+Only 5 of 34 queries changed. The updated prompt improved q01 by moving the relevant OPT document from rank 4 to 3, but lowered relevant documents for q13, q16, q19, and q25. The largest drop was q16, where the relevant USCIS STEM OPT document moved from rank 1 to 2 for a question about Form I-983. For q13 and q19, the relevant documents moved from rank 2 to 3, while q25 dropped from rank 4 to 5. The domain change could have affected these rankings, but I found no evidence that the new wording systematically favored less relevant documents. These small shifts could also reflect reranker variability, which this ablation did not isolate.
 
-Overall, my hypothesis was not supported. Correcting the domain description did not produce a statistically distinguishable improvement, suggesting that the original prompt mismatch had limited measurable impact on this gold set.
+Overall, my hypothesis was not supported. Correcting the domain description did not produce a statistically distinguishable improvement, and the observed ranking changes do not establish whether the prompt wording or reranker variability caused the differences.
+
 ---
 
 ## 6. Failure analysis
@@ -364,13 +365,15 @@ Pick the queries where your best system on your own corpus failed: the relevant 
 Take at least five, and read what the system returned next to what was relevant.
 Then sort the failures by cause, for example a vocabulary mismatch, near-duplicate documents, a chunk that cut the answer in half, a query that is ambiguous, or a label that was wrong, because sometimes the gold set is what failed.
 
+The failures mainly involve overlapping documents (q23, q24), relevant information outside the reranker’s 300-word window (q01, q20), and ambiguous queries or relevance labels (q24, q34). These cases show that poor rankings do not always indicate a retrieval failure; incomplete or overly broad relevance labels can also affect evaluation. I did not identify a clear vocabulary mismatch among these five cases.
+
 | qid | what the best system returned | what was relevant | cause | what you would try |
 |---|---|---|---|---|
 | q24 | `irs-exempt-individuals-teachers-and-trainees.md`, `irs-pub-519-p04-days-of-presence-in.md`, `irs-instr-1040nr-p04-filing-requirements-through-do.md`, `irs-pub-519-p47-i-am-a-student.md`, `irs-pub-519-p46-what-is-the-difference.md` | `irs-exempt-individual-who-is-a-student.md`, `irs-substantial-presence-test.md`, `irs-instr-1040nr-p06-additional-information-through.md` | Overlapping documents and incomplete relevance labels. Some returned documents also answered the question but weren't labeled relevant. | Review the returned documents and add missing relevance labels where appropriate. |
 | q20 | `cfr8-214.2-f-p04-extension-of-stay-through.md`, `sevp-maintaining-status.md`, `sevp-transferring-schools.md`, `cfr8-214.2-f-p03-full-course-of-study.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `cfr8-214.2-f-p09-temporary-absence-from-the.md` | Relevant information was buried in a long document. The reranker only saw the first 300 words, missing the reinstatement paragraph and five-month rule. | Use chunk-level reranking so the model can evaluate the relevant passage instead of truncated document text. |
 | q34 | `uscis-opt-f1.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-stem-opt.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md`, `cfr8-214.2-f-p06-practical-training-through-cur.md` | Ambiguous query and possible over-labeling. "The most OPT I can get" could refer to the standard 12 months, the STEM extension, or additional OPT at a higher degree level. The top-ranked USCIS document answers the pre-completion deduction question, while the missing CFR document provides only partial supporting information. | Clarify which OPT duration the query asks about and review whether the CFR document should be labeled relevant. |
 | q01 | `uscis-i-765-p02-form-details.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-opt-f1.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md` | Possible document truncation during reranking. The reranker only sees the first 300 words, so it may miss the filing deadlines in the relevant document. Other documents also contain overlapping information. | Use section-based chunk reranking to capture the relevant filing deadlines and review relevance labels for overlapping documents. |
- q23 | `irs-obtaining-an-itin-from-abroad.md`, `irs-taxpayer-identification-numbers-tins-for-foreign-students-and-scholars.md`, `irs-itin-documentation-frequently-asked-questions-faqs.md`, `irs-instr-w7-p04-additional-documentation-requi.md`, `irs-instr-w7-p03-who-is-eligible-to.md` | `irs-instr-w7-p03-who-is-eligible-to.md` | Reranking favored shorter, overlapping ITIN guidance over the document containing the complete list of acceptable identity documents. The relevant document dropped from rank 2 in hybrid to rank 5. | Rerank using complete relevant passages and prioritize documents that answer both parts of the query. |
+| q23 | `irs-obtaining-an-itin-from-abroad.md`, `irs-taxpayer-identification-numbers-tins-for-foreign-students-and-scholars.md`, `irs-itin-documentation-frequently-asked-questions-faqs.md`, `irs-instr-w7-p04-additional-documentation-requi.md`, `irs-instr-w7-p03-who-is-eligible-to.md` | `irs-instr-w7-p03-who-is-eligible-to.md` | Reranking favored shorter, overlapping ITIN guidance over the document containing the complete list of acceptable identity documents. The relevant document dropped from rank 2 in hybrid to rank 5. | Rerank using complete relevant passages and prioritize documents that answer both parts of the query. |
 
 ---
 
@@ -523,7 +526,13 @@ _No stretch runs yet (stretch option 5): `uv run p2 run --corpus own --queries e
 
 ### Your stretch
 
-Write the five things here.
+rider — 598E rider
+
+I completed the 598E rider, which includes repeated reranker evaluations on the shared corpus and a pre-registered hypothesis on my own corpus. The three runs are stored in runs/shared/rerank.practice.r1.trec through .r3.trec, with corresponding answers in answers/shared/rerank.r1.json through .r3.json and traces in traces/. The hypothesis and decision rule are documented in PREREG.md, committed before the first relevance judgment.
+
+The repeats table in Section 9 shows that nDCG@10 varied by only 0.002 across runs, while reranking consistently outperformed hybrid. All three answer runs passed 8 of 8 in-scope and 4 of 4 out-of-scope questions, but the wide Wilson intervals do not establish perfect reliability. On my corpus, the paired nDCG@10 improvement over hybrid was +0.120 (95% CI [+0.010, +0.230]). This supports my pre-registered hypothesis but does not establish that the improvement reaches Δ = 0.15.
+
+Next, I would expand the gold set and repeat the evaluation. I would consider the additional queries sufficient for the planned sensitivity if the minimum detectable difference falls to 0.15 or below.
 
 ---
 
@@ -573,7 +582,9 @@ Each repeat answers the same questions, so the repeats are not independent trial
 Does the reranker's gain over its first stage survive the run-to-run variation?
 Write what the spread is, how it compares with the gain, and what the Wilson intervals on the verified share and the declined share say about 8 and 4 questions.
 
-598E: write the repeats result here.
+598E: The reranker’s improvement over hybrid survived all three runs. Recall@10 remained at 0.775, MRR@10 at 0.800, and nDCG@10 varied only from 0.775 to 0.777. The nDCG@10 gain over hybrid ranged from +0.288 to +0.290, much larger than the 0.002 run-to-run spread, with all 95% confidence intervals excluding zero.
+
+All three answer runs verified 8 of 8 in-scope answers and correctly declined 4 of 4 out-of-scope questions. However, the Wilson intervals were wide ([0.676, 1.000] and [0.510, 1.000]), so perfect results on these small samples do not establish perfect reliability.
 
 ### The pre-registered claim
 
@@ -581,4 +592,8 @@ The claim, the smallest effect, the gold-set size and the test are in `PREREG.md
 Here, say whether you followed the plan, what the interval turned out to be, and what that means.
 The outcome section of `PREREG.md` holds the short version.
 
-598E: write the claim and its outcome here.
+598E: I pre-registered the hypothesis that reranking would outperform hybrid retrieval on my corpus, using nDCG@10 with a minimum meaningful difference of Δ = 0.15. I followed the planned paired 95% confidence interval test. The observed improvement was +0.120, with a 95% CI of [+0.010, +0.230], entirely above zero. Under my pre-registered decision rule, the hypothesis is supported.
+
+However, I completed 34 queries instead of the planned 40, which was already below the estimated 50 needed to detect Δ = 0.15 with 80% power. The actual minimum detectable difference was 0.161, slightly above Δ. Although reranking performed significantly better, the interval does not establish that the improvement reaches my minimum meaningful effect of 0.15.
+
+Next, I would expand the gold set and rerun the paired evaluation to estimate the improvement more precisely. The result supports reranking’s ranking advantage on this corpus, but not yet whether that advantage justifies its additional cost.
