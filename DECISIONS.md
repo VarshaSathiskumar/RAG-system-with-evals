@@ -43,11 +43,11 @@ If you rejected the alternative without measuring it, say why that was a fair ca
 "There was no alternative" is not an answer.
 Find the fork.
 
-I chose to rerank documents using only their first 300 words rather than splitting them into smaller passages and reranking those individually. This kept the implementation simpler and limited the text sent to Claude, reducing token usage and latency.
+I chose to use the first 300 words of each document for document-level reranking instead of reranking individual chunks. My system already supports chunk-level reranking for answer generation, but I kept document-level retrieval simpler by using a fixed 300-word window.
 
-The tradeoff was that relevant information appearing later in long documents could be missed. My failure analysis identified this issue in q01 and q20, where important OPT and reinstatement information appeared beyond the reranker’s input window. On my corpus, the 300-word window covered only 21.8% of the document text.
+The tradeoff was missing relevant information buried deeper in long documents. On my corpus, the window covered only 21.8% of the text. My failure analysis identified this issue in q01 and q20, where relevant information appeared beyond the reranker’s input window.
 
-I did not implement chunk-level reranking because it would require additional passage selection and potentially more Claude calls or input tokens. However, I gave up the ability to evaluate relevant passages located deeper in documents. I would compare both approaches in a future experiment to measure whether the retrieval improvement justifies the additional cost.
+I didn’t compare both approaches for document-level retrieval because chunk-level reranking would require an extra step to combine chunk rankings into document rankings. Multiple chunks from the same document could also occupy the top 20 slots, reducing document diversity. The existing reranker used approximately 15,862 Claude input tokens and 3.0 seconds per query. I kept the simpler approach to finish the evaluation, but I still don’t know whether chunk-level reranking would improve the results.
 
 ---
 
@@ -63,9 +63,8 @@ What did you do instead?
 If it genuinely never happened, say so plainly, and then say what you would have had to check in order to notice.
 Being honest here costs you far less than a story you cannot defend when you record your video.
 
-I used Claude to help select the top five relevant documents for each query while building my gold set. However, some of its suggestions were completely unrelated to the question, even with higher reasoning effort.
-
-I noticed this when I manually read the suggested documents and compared their contents with the query. Instead of accepting Claude’s selections, I verified each document myself and removed irrelevant ones. This showed me that even with higher reasoning effort, Claude can make incorrect relevance judgments, so manual verification was necessary.
+Initially, I relied only on Claude to find the top five relevant documents for each query in my gold set. But when I reviewed its suggestions, I found that some documents contained very little relevant information about the questions.
+I noticed this by reading the documents myself and checking whether they actually contained the answers. Even with higher reasoning effort, Claude still suggested irrelevant documents, so I had to manually verify its selections rather than relying on them completely.
 
 ---
 
@@ -92,8 +91,8 @@ One thing in your system, your corpus or your gold set that is not right, not fi
 What would you do next, and how would you find out whether it matters?
 Name the file, the query or the document where someone could look.
 
-One unresolved issue is incomplete relevance judgments in my gold set. I reviewed candidates from Claude, BM25, and dense retrieval, but not all 406 documents, so some relevant documents may have been missed.
+One unresolved issue is incomplete relevance judgments in my gold set (eval/own/qrels.txt). I reviewed candidates from Claude, BM25, and dense retrieval, but not all 406 documents, so some relevant documents may have been missed.
 
 For example, query q24 in Section 6 of EVAL.md returned IRS documents that also answered the question but were not marked relevant. This could unfairly penalize systems that retrieved useful documents.
 
-Next, I would review the top 10 results from all four systems, correct any missing relevance judgments, and rerun uv run p2 score. I would compare the updated retrieval metrics and confidence intervals to see whether the missing judgments materially affected my conclusions.
+Next, I would review the top 10 results from all four systems, correct any missing relevance judgments, and rerun uv run p2 score. I would compare the updated metrics and confidence intervals against the original results to see whether the missing judgments affected my conclusions. Since changing the relevance judgments after scoring could affect my pre-registered hypothesis, I would report this as a separate sensitivity analysis and preserve the original outcome.
