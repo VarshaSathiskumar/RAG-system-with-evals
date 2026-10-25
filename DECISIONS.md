@@ -77,7 +77,11 @@ It could be a mean over a small query class, a difference whose interval include
 What would have to be true for you to trust it?
 Did you do anything to test it, and what did that show?
 
-TODO: your answer to prompt 4.
+One number I don’t fully trust is the 100% verified answer rate in Section 2 of EVAL.md. All 8 in-scope answers passed verification, but the sample is small, and the 95% Wilson interval is [0.676, 1.000]. This means the result does not establish that the system is consistently reliable.
+
+I repeated the evaluation three times, and all three runs passed 8 of 8 answers. However, they used the same questions, so they do not establish performance on unseen questions. I also manually inspected three passing answers and found that one contained a correct statement without a separate supporting quote.
+
+I would trust the result more after testing a larger, more diverse question set and manually checking whether each cited quote supports its claim.
 
 ---
 
@@ -88,4 +92,8 @@ One thing in your system, your corpus or your gold set that is not right, not fi
 What would you do next, and how would you find out whether it matters?
 Name the file, the query or the document where someone could look.
 
-TODO: your answer to prompt 5.
+One unresolved issue is incomplete relevance judgments in my gold set. I reviewed candidates from Claude, BM25, and dense retrieval, but not all 406 documents, so some relevant documents may have been missed.
+
+For example, query q24 in Section 6 of EVAL.md returned IRS documents that also answered the question but were not marked relevant. This could unfairly penalize systems that retrieved useful documents.
+
+Next, I would review the top 10 results from all four systems, correct any missing relevance judgments, and rerun uv run p2 score. I would compare the updated retrieval metrics and confidence intervals to see whether the missing judgments materially affected my conclusions.
