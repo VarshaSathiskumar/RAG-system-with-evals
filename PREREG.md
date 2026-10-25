@@ -95,11 +95,14 @@ Which row of the table in section 4 is it?
 Did your gold set reach the size section 3 asked for, and what was the minimum detectable difference that `uv run p2 score` printed?
 What would you do next, and what would you want a reader to take from this?
 
-I followed my pre-registered test, comparing rerank against hybrid using nDCG@10. The observed improvement was +0.120, with a paired 95% confidence interval of [+0.010, +0.230] from the own-pairs table in Section 4 of EVAL.md. Since the interval is entirely above zero, my hypothesis is supported under the pre-registered decision rule.
 
-I completed 34 queries instead of the planned 40, below the estimated 50 needed to detect Δ = 0.15 with 80% power. The actual minimum detectable difference was 0.161, slightly above my target. Although reranking performed better, the interval does not establish that the improvement reaches my minimum meaningful effect of 0.15.
+I followed my pre-registered test, comparing rerank against hybrid using nDCG@10. The observed improvement was +0.120, with a paired 95% confidence interval of [+0.010, +0.230] from the own-pairs table in EVAL.md. Since the interval is entirely above zero, it falls under row 1 of my decision table: “supported: the difference is distinguishable from zero.” However, my estimated improvement of 0.120 is below Δ = 0.15, and the interval includes both smaller and larger improvements than Δ. Therefore, the result supports an improvement over hybrid but does not establish that it reaches my minimum meaningful effect.
 
-Next, I would expand the gold set to reduce uncertainty and test whether the improvement is large enough to justify reranking’s additional latency and token costs. The main takeaway is that reranking improved ranking quality on my corpus, but the practical significance of that improvement remains uncertain.
+I completed 34 queries instead of the planned 40, below the estimated 50 needed for 80% power. The actual minimum detectable difference (MDD) was 0.161, slightly above my target of 0.15. My queries varied less than expected, with a standard deviation of approximately 0.334 compared to the stage 1 estimate of 0.377. Therefore, the MDD exceeding my target was primarily due to the smaller gold set rather than greater query variability.
+
+Next, I would expand the gold set to at least 39 queries, the minimum needed to reach my planned sensitivity of Δ = 0.15 based on the observed standard deviation. However, this would not guarantee that I could determine whether the improvement reaches 0.15. If the true improvement remains close to the observed +0.120, I may need substantially more queries to narrow the confidence interval. I would also evaluate whether the improvement justifies reranking’s additional latency and token costs.
+
+The main takeaway is that reranking improved nDCG@10 over hybrid by an amount distinguishable from zero, but my gold set cannot establish whether that improvement is at least 0.15.
 
 ---
 
