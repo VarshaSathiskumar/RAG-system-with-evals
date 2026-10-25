@@ -28,6 +28,13 @@ For each of `dense`, `hybrid` and `rerank`, one or two sentences: the embedding 
 ##### 1.Dense Retrieval
 
 - Compared OpenAI text-embedding-3-small and text-embedding-3-large on retrieval quality, storage, and embedding cost. Selected text-embedding-3-small because it achieved similar Recall and MRR while text-embedding-3-large cost ~6.5× more and produced ~2× larger vector files.
+
+| 20 practice queries | Recall@10 | MRR@10 | nDCG@10 |
+|---|---:|---:|---:|
+| dense (text-embedding-3-small) | 0.633 | 0.620 | 0.582 |
+| dense_large (text-embedding-3-large) | 0.708 | 0.634 | 0.594 |
+| large minus small | +0.075 | +0.014 | +0.012 |
+
 - Embeds 300-word chunks with 50-word overlap.
 - Aggregates chunk similarity into document rankings using each document's best-scoring chunk.
 
@@ -130,9 +137,12 @@ The results are consistent with Lecture 12’s point that no retriever works bes
 <!-- p2:end answers -->
 
 Which system answered, and why that one?
-The rerank system correctly answered all 8 in-scope questions, verified all 12 supporting quotes, and declined all 4 out-of-scope questions. It reranks the top 20 hybrid-retrieved chunks using Claude Sonnet 5.5 to prioritize relevant evidence before passing the top 5 chunks for citation-grounded answer generation.
+
+I selected the rerank system because it achieved the highest nDCG@10 (0.785) on the 20 shared practice queries and supports search_chunks, which the answer generation step requires. It uses Claude to rerank the top 20 hybrid results and passes the top 5 relevant chunks for citation-grounded answer generation.
+
 What did you change in `prompts/answer.txt`, if anything, and did the verified share or the declined share move?
-I commented out the third line, but the results remained unchanged because the first line already restricts answers to the provided chunks, and the output schema includes a not_found field for unsupported questions.
+
+I commented out the third line - "If the chunks do not say what the question asks, set not_found to true, leave claims empty, and do not answer from what you already know.", but the results remained unchanged because the first line already restricts answers to the provided chunks, and the output schema includes a not_found field for unsupported questions.
 
 Then read three in-corpus answers that `uv run p2 verify` passed.
 For each one, open the cited chunk and say whether the quote really supports the claim next to it.
@@ -155,8 +165,8 @@ What is it, where did it come from, how many documents and how many megabytes, a
 Name the one or two documents you were least sure about and what you decided.
 Say which of the allowed sources in the brief it comes from.
 
-My corpus contains 406 documents (3.6 MB, approximately 772,300 estimated tokens) covering U.S. immigration regulations, international student requirements, employment authorization, and taxation.The documents were collected from official U.S. federal government websites, primarily IRS (198), eCFR (140), Department of Labor (31), and USCIS (17), along with GovInfo (12) and additional sources from DHS, CBP, the Department of State, FinCEN, and ICE. 
-All documents are classified as us-gov-public-domain. The license check returned zero flagged or failing documents.
+My corpus contains 406 documents (3.6 MB, approximately 772,300 estimated tokens) covering U.S. immigration regulations, international student requirements, employment authorization, and taxation. The documents were collected from official U.S. federal government websites, primarily IRS (198), eCFR (140), Department of Labor (31), and USCIS (17), along with GovInfo (12) and additional sources from DHS, CBP, the Department of State, FinCEN, and ICE. 
+All documents are classified as US federal government works (us-gov-public-domain). The license check returned zero flagged or failing documents.
 I also ran audit.py script to detect potential third-party copyrighted content. Two documents, cfr8-214.2-h-p05-petition-for-alien-to.md and cfr8-245.10.md, initially raised concerns due to references to third-party work and licensing. These were confirmed as regulatory terminology rather than copyright issues. The improved audit returned zero findings, so no documents were removed.
 
 ### The gold set
@@ -290,6 +300,7 @@ Which differences are distinguishable and which are not, at your gold-set size?
 
 On my 34-query gold set, reranking achieved the highest scores (Recall@10: 0.902, MRR@10: 0.763, NDCG@10: 0.780). Paired 95% confidence intervals showed distinguishable improvements over BM25 in MRR and NDCG, over dense retrieval in Recall and NDCG, and over hybrid retrieval in MRR and NDCG. Hybrid also outperformed BM25 in MRR and dense retrieval in Recall. All other differences were not distinguishable at this sample size.
 
+Across the six system pairs, the minimum detectable differences (MDDs) ranged from approximately 0.09 to 0.22. Other differences were not statistically distinguishable at this sample size. This does not mean the systems perform equally. Differences smaller than the MDD may exist but cannot be reliably detected with this gold set.
 
 Do the `hand` queries and the `claude` queries tell the same story?
 Mostly yes. Reranking performed best overall on both groups, although not on every metric. Hand-written queries generally had higher scores than Claude-generated queries. The difference in Recall@10 was statistically distinguishable for BM25 and reranking, but not for dense or hybrid retrieval. There was also no clear evidence that Claude-generated queries favored keyword search over dense retrieval.
@@ -297,7 +308,7 @@ Mostly yes. Reranking performed best overall on both groups, although not on eve
 
 Did your prediction in `DECISIONS.md` prompt 1 hold?
 
-My prediction was correct. Reranking performed best overall, with the highest Recall@10 (0.902), MRR@10 (0.763), and NDCG@10 (0.780). However, not all improvements were statistically distinguishable. The results show stronger evidence that reranking helps rank relevant documents higher than that it consistently retrieves more relevant documents.
+My prediction was partly correct. Reranking performed best across all three metrics. Hybrid ranked second in nDCG@10 (0.660), but dense performed better in MRR@10 (0.641 vs. 0.623). BM25 performed worst in MRR and nDCG, but its Recall@10 (0.833) exceeded dense retrieval (0.775). I also predicted that dense retrieval would perform better on conversational questions. However, BM25 slightly outperformed dense on scenario queries in nDCG@10 (0.622 vs. 0.612), while dense performed better on semantic queries (0.673 vs. 0.583). None of the differences among BM25, dense, and hybrid in nDCG@10 were statistically distinguishable.
 
 ---
 
@@ -349,7 +360,7 @@ Read the queries at the top of each list in the second table, and say whether yo
 
 
 
-Hypothesis: I expect changing the reranker prompt from mine safety regulations to immigration and tax regulations to improve nDCG@10 because Claude will have the correct domain context to rank relevant documents higher.
+Hypothesis: I expect changing the reranker prompt from mine safety regulations to immigration regulations will improve nDCG@10 because Claude will have the correct context to rank relevant documents higher.
 
 Result: I changed only the domain description in the reranker prompt. Contrary to my prediction, nDCG@10 decreased from 0.780 to 0.761. However, the 95% confidence interval [-0.046, +0.001] includes zero, so the difference was not statistically distinguishable. With 34 queries, the minimum detectable difference was 0.034.
 
@@ -365,15 +376,15 @@ Pick the queries where your best system on your own corpus failed: the relevant 
 Take at least five, and read what the system returned next to what was relevant.
 Then sort the failures by cause, for example a vocabulary mismatch, near-duplicate documents, a chunk that cut the answer in half, a query that is ambiguous, or a label that was wrong, because sometimes the gold set is what failed.
 
-The failures mainly involve overlapping documents (q23, q24), relevant information outside the reranker’s 300-word window (q01, q20), and ambiguous queries or relevance labels (q24, q34). These cases show that poor rankings do not always indicate a retrieval failure; incomplete or overly broad relevance labels can also affect evaluation. I did not identify a clear vocabulary mismatch among these five cases.
+The failures mainly involve relevant information falling outside the reranker’s 300-word window (q01, q20, q23), overlapping documents and incomplete relevance labels (q24), and ambiguous queries or relevance labels (q34). These cases show that poor rankings do not always indicate a retrieval failure. The reranker may receive the correct document but miss the relevant passage because of truncation. I did not identify a clear vocabulary mismatch among these five cases.
 
 | qid | what the best system returned | what was relevant | cause | what you would try |
 |---|---|---|---|---|
 | q24 | `irs-exempt-individuals-teachers-and-trainees.md`, `irs-pub-519-p04-days-of-presence-in.md`, `irs-instr-1040nr-p04-filing-requirements-through-do.md`, `irs-pub-519-p47-i-am-a-student.md`, `irs-pub-519-p46-what-is-the-difference.md` | `irs-exempt-individual-who-is-a-student.md`, `irs-substantial-presence-test.md`, `irs-instr-1040nr-p06-additional-information-through.md` | Overlapping documents and incomplete relevance labels. Some returned documents also answered the question but weren't labeled relevant. | Review the returned documents and add missing relevance labels where appropriate. |
 | q20 | `cfr8-214.2-f-p04-extension-of-stay-through.md`, `sevp-maintaining-status.md`, `sevp-transferring-schools.md`, `cfr8-214.2-f-p03-full-course-of-study.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `cfr8-214.2-f-p09-temporary-absence-from-the.md` | Relevant information was buried in a long document. The reranker only saw the first 300 words, missing the reinstatement paragraph and five-month rule. | Use chunk-level reranking so the model can evaluate the relevant passage instead of truncated document text. |
 | q34 | `uscis-opt-f1.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-stem-opt.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md`, `cfr8-214.2-f-p06-practical-training-through-cur.md` | Ambiguous query and possible over-labeling. "The most OPT I can get" could refer to the standard 12 months, the STEM extension, or additional OPT at a higher degree level. The top-ranked USCIS document answers the pre-completion deduction question, while the missing CFR document provides only partial supporting information. | Clarify which OPT duration the query asks about and review whether the CFR document should be labeled relevant. |
-| q01 | `uscis-i-765-p02-form-details.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-opt-f1.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md` | Possible document truncation during reranking. The reranker only sees the first 300 words, so it may miss the filing deadlines in the relevant document. Other documents also contain overlapping information. | Use section-based chunk reranking to capture the relevant filing deadlines and review relevance labels for overlapping documents. |
-| q23 | `irs-obtaining-an-itin-from-abroad.md`, `irs-taxpayer-identification-numbers-tins-for-foreign-students-and-scholars.md`, `irs-itin-documentation-frequently-asked-questions-faqs.md`, `irs-instr-w7-p04-additional-documentation-requi.md`, `irs-instr-w7-p03-who-is-eligible-to.md` | `irs-instr-w7-p03-who-is-eligible-to.md` | Reranking favored shorter, overlapping ITIN guidance over the document containing the complete list of acceptable identity documents. The relevant document dropped from rank 2 in hybrid to rank 5. | Rerank using complete relevant passages and prioritize documents that answer both parts of the query. |
+| q01 | `uscis-i-765-p02-form-details.md`, `cfr8-214.2-f-p08-extension-of-stay-for.md`, `cfr8-214.2-f-p07-general-through-24-month.md`, `uscis-opt-f1.md`, `cfr8-214.2-f-p02-period-of-stay.md` | `uscis-opt-f1.md` | Document truncation during reranking. The OPT filing deadline passage begins at word 709 of 1,265 in uscis-opt-f1.md, beyond the reranker’s 300-word window.| Use section-based chunk reranking to capture the filing deadlines and review relevance labels for overlapping documents. |
+| q23 | `irs-obtaining-an-itin-from-abroad.md`, `irs-taxpayer-identification-numbers-tins-for-foreign-students-and-scholars.md`, `irs-itin-documentation-frequently-asked-questions-faqs.md`, `irs-instr-w7-p04-additional-documentation-requi.md`, `irs-instr-w7-p03-who-is-eligible-to.md` | `irs-instr-w7-p03-who-is-eligible-to.md` | Document truncation during reranking. The acceptable identity documents table begins at word 927 of 1,304 in irs-instr-w7-p03-who-is-eligible-to.md, beyond the 300-word window. The reranker never saw the list needed to answer the query. | Rerank relevant document chunks instead of the first 300 words so the model can evaluate the complete list of acceptable documents. |
 
 ---
 
