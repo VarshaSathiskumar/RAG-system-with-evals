@@ -12,6 +12,7 @@ It is a retrieval-augmented generation (RAG) system. It finds the passages that 
 The project also measures the search itself. Four retrieval systems are compared on 34 questions with known answers, and every score has a confidence interval, so a difference is claimed only when the data supports it.
 
 It was built for a course project (CSCI 498E/598E, Coding with AI Agents).
+
 **Demo link** : https://youtu.be/AUTpid6RiK4
 
 ## Architecture
