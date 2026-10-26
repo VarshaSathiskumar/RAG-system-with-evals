@@ -38,6 +38,9 @@ The commands are `run`, `score`, `answer`, `verify`, `judge`, `ingest`, `license
 `p2 judge FILE` (stretch option 2) asks Claude, one call per claim, whether the claim's quote supports it, with `prompts/judge.txt` as the system prompt.
 `p2 run --corpus own --queries FILE --system NAME --stretch` (stretch option 5, the grep agent) runs a system on lines copied from `eval/own/queries.tsv` into `runs/own/stretch/`; `p2 run --all` never runs a stretch run again.
 A new dependency goes in through `uv add`, and `uv.lock` is committed with it, because CI installs with `uv sync --frozen`.
+`dense`, `hybrid`, `rerank` and `demo.py` ask OpenAI to embed any text whose vector is not already in `vectors/`, such as a new question you type into the demo, so they need your own OpenAI API key; `p2 check` and CI never need one, because the committed vectors cover everything they run.
+To set it up, create a file named `.env` at the repo root with one line, `OPENAI_API_KEY=<your key>`, using your own key from your OpenAI account; `p2/retrievers/dense.py` reads it from there, or from your shell if you `export OPENAI_API_KEY=...` instead.
+The key stays only in `.env`: git ignores that file (`.gitignore` has `.env`), so check that stays true, and never put the key in `CLAUDE.md`, `p2.toml`, a script, a commit or a message; `bm25` and the `--system bm25` demo need no key.
 
 ## Formats
 
