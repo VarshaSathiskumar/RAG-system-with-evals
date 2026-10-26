@@ -153,6 +153,23 @@ What the numbers show:
 - **Fixing the reranker prompt did not help measurably.** Changing it from mine safety (the course default) to immigration moved nDCG@10 from 0.780 to 0.761, which is within noise.
 - **The main weakness is truncation.** The reranker reads only the first 300 words of each document, about 22% of the text in this corpus, so it can miss the passage that answers the question.
 
+## Cost and latency
+
+Every Claude call is recorded in a trace file in `traces/`, and `p2 score` adds up the calls, tokens and seconds in `EVAL.md`. These are the numbers for the 34 questions, on my laptop.
+
+| System | Claude calls per question | Claude input tokens per question | Time per question |
+|---|---:|---:|---:|
+| bm25 | 0 | 0 | about 1 ms |
+| dense | 0 | 0 | about 1 ms |
+| hybrid | 0 | 0 | about 2.5 ms |
+| rerank | 1 | about 15,900 | about 3.0 s |
+
+- **Only rerank costs Claude tokens.** It sends 20 candidates of up to 300 words each, which is why one question uses about 15,900 input tokens (34 questions: 539,299 tokens in 102 seconds).
+- **The extra cost buys accuracy, but not always a clear win.** Rerank beats bm25 and hybrid on MRR@10 by amounts the data can tell apart (0.208 and 0.140). Against dense, which costs nothing and takes a millisecond, the MRR@10 gap (0.122) is not distinguishable with 34 questions. On nDCG@10 the lead over dense is distinguishable but close to zero (lower end of the interval +0.009).
+- **Answering adds one more Claude call.** In the demo, a question answered with rerank makes two calls and takes about 8 seconds (about 2.5 s to retrieve and rerank, then about 5 s to write the answer from about 4,500 tokens).
+- **Repeat questions are free.** Claude's replies are cached, so asking the same question again is instant and costs no tokens.
+- **The times for bm25, dense and hybrid assume the question's vector is already stored.** A new question needs one call to OpenAI to be embedded.
+
 ## Future improvements
 
 - **Rerank passages, not document openings.** Let Claude see the chunk that matches the question instead of the first 300 words.
